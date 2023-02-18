@@ -1,0 +1,58 @@
+version: "3.7"
+
+services:
+  currency-exchange:
+    image: aminux2001/mmv2-currency-exchange-service:0.0.1-SNAPSHOT
+    ports:
+      - "8000:8000"
+    mem_limit: 700m
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      - EUREKA.CLIENT.SERVICEURL.DEFAULTZONE=http://naming-server:8761/eureka
+
+  currency-conversion:
+    image: aminux2001/mmv2-currency-conversion-service:0.0.1-SNAPSHOT
+    ports:
+      - "8100:8100"
+    mem_limit: 700m
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      - EUREKA.CLIENT.SERVICEURL.DEFAULTZONE=http://naming-server:8761/eureka
+      - SPRING.ZIPKIN.BASEURL=http://zipkin:9411
+
+  api-gateway:
+    image: aminux2001/mmv2-api-gateway:0.0.1-SNAPSHOT
+    ports:
+      - "8765:8765"
+    mem_limit: 700m
+    depends_on:
+      - naming-server
+    networks:
+      - currency-network
+    environment:
+      - EUREKA.CLIENT.SERVICEURL.DEFAULTZONE=http://naming-server:8761/eureka
+      - SPRING.ZIPKIN.BASEURL=http://zipkin:9411
+
+  naming-server:
+    image: aminux2001/mmv2-eureka-server:0.0.1-SNAPSHOT
+    ports:
+      - "8761:8761"
+    mem_limit: 700m
+    networks:
+      - currency-network
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+    networks:
+      - currency-network
+
+networks:
+  currency-network:
